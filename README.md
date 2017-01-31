@@ -6,9 +6,9 @@ Description:
   3. Collected statistics are persistent through reboot.
   4. Command line interface is separate process which interacts with daemon.
       Commands:
-      start
-      stop
-      show [ip] count
-      select [iface] (iface - eth0, wLan0, eth[N], wLan[N])
-      stat [iface]
-      --help
+      start;
+      stop;
+      show [ip] count;
+      select [iface] (iface - eth0, wLan0, eth[N], wLan[N]);
+      stat [iface];
+      --help.
