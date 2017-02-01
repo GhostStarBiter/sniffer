@@ -1,6 +1,6 @@
 #include <stdlib.h>		// malloc(..) func	
 #include <stdio.h> 		// fopen(..) func
-#inclide <time.h>		// time func's
+#include <time.h>		// time func's
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
