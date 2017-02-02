@@ -5,13 +5,13 @@ $SNIF=program
 echo -e "Enter type of net connection: eth or wlan?\n"
 read $conn_type
 ##
-if [ $conn_type = eth ]
+if [ "$conn_type" = "eth" ]
 then echo -e "Enter ip address: \n"
 read $ip
-elif [ $conn_type = wlan ]
+elif [ "$conn_type" = "wlan" ]
 then echo -e "Enter ip address: \n"
 read $ip
-elif [ -z $conn_type ]
+elif [ -z "$conn_type" ]
 then 
 echo "Connection type not entered. Quit."
 exit 1
