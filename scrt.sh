@@ -4,7 +4,7 @@
 #
 [ -e daemon_calls.txt ] && continue || touch daemon_calls.txt /home/$(whoami)/
 #
-echo $(date) >> /home/$(whoami)/daemon_calls.txt
+echo { $(date) $1 $2 $3 } >> /home/$(whoami)/daemon_calls.txt
 if [ -z "$1" ] || [ "$1" = '--help' ]
 then	echo "Commands to use:"
 	echo "\n"
