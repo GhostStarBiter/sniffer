@@ -12,7 +12,12 @@ void sniffPacket(unsigned char *, int );
 FILE *logfile;
 int dae_sock;
 int length;
+char ip_addr[12];
+char iface[4];
+char default_iface[] = "eth0";
+
 struct sockaddr_in source_addr, dest_addr;
+
 char *get_time(){
 	time_t rawtime;
 	struct tm *tm_info;
@@ -22,13 +27,7 @@ char *get_time(){
 	return( &curr_time );
 }
 
-
-
-int main(int argc, char *argv[]) // argv hold (1)the type of the net [eth, wlan], (2)N of the net type[0,1,2,..etc],(3) ip address
-{
-	if( argc < 2 ){ printf(%s\n,"Program get no arguments!"); return -1; }; // if program launched without parameters
-  	if(argc == 2 && argv[argc] == 'start'){ 
-/*=begin=*/
+void sniffer_start(){
 	logfile = fopen(daelog.txt,"a+");
   	if(logfile==NULL){printf(%s\n, "Unable to add records to file daelog.txt. If file not exist you need to create it @home_dir.");};
 	char *moment[80];
@@ -36,5 +35,40 @@ int main(int argc, char *argv[]) // argv hold (1)the type of the net [eth, wlan]
 	fprintf(logfile,"Sniffer started %s\t\n ",moment);
 	/*CREATE BLANK SOCKET*/
   	dae_sock = socket(AF_INET,SOCK_STREAM(????)  ,  );
-	if(dae_sock < 0){printf};
+	if(dae_sock < 0){moment = get_time(); fprintf(logfile,"Socket error\ %s\t\n",moment);};
+};
+
+void sniffer_stop();
+void show_ip_count(char *); 	// pas to the function link to ip adddress value stored in "ip_addr[]"
+void select_iface(char *);	// pas to the function link to iface value stored in "iface[]"
+void stat_iface(char *);	// pas to the function link to iface value stored in "iface[]"
+
+
+
+int main(int argc, char *argv[]) // argv hold (1)the type of the net [eth, wlan], (2)N of the net type[0,1,2,..etc],(3) ip address
+{
+	if( argc < 2 ){ printf(%s\n,"Program get no arguments!"); return -1; }; // if program launched without parameters
+	if(argv[1] == "start"){ void sniffer_start();}
+	  else
+	if(argv[1] == "stop"){ void sniffer_stop();}
+	  else
+	if(argv[1] == "show" && argv[3] == "count"){ ip_addr = argv[2]; void show_ip_count(char *ip_addr);}
+	  else
+	if(argv[1] == "select" && argv[2] == "iface"){ iface = argv[3]; void select_iface(char *iface);}
+	  else
+	if(argv[1] == "stat"){ iface = argv[2]; void stat_iface(char *iface);}
+	exit(0);
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
