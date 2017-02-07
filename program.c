@@ -27,7 +27,7 @@ char *get_time(){
 int main(int argc, char *argv[]) // argv hold (1)the type of the net [eth, wlan], (2)N of the net type[0,1,2,..etc],(3) ip address
 {
 	if( argc < 2 ){ printf(%s\n,"Program get no arguments!"); return -1; }; // if program launched without parameters
-  	if(argc == 2 && argv[argc] == "start"){ 
+  	if(argc == 2 && argv[argc] == 'start'){ 
 /*=begin=*/
 	logfile = fopen(daelog.txt,"a+");
   	if(logfile==NULL){printf(%s\n, "Unable to add records to file daelog.txt. If file not exist you need to create it @home_dir.");};
