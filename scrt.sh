@@ -18,14 +18,14 @@ then	echo "Commands to use:"
 	echo "\n"
 	echo "\tstat [iface]\t show all collected statistics for particular interface, if [iface] omitted - for all interfaces;\n" 
 elif [ "$1" = 'start' ]
-then echo "start done" 	# command exec. #exec program with parameter $1 (e.i. start)
+then echo "start done" 	# snfrdaemon $1
 elif [ "$1" = 'stop' ]
-then echo "stop done"	# command exec. #exec program with parameter $1 (e.i. stop)
+then echo "stop done"	# snfrdaemon $1
 elif [ "$1" = 'show' ] && [ "$3" = 'count' ]
-then echo "$1 $2 $3"	# command exec. #exec program with parameters $1, $2, $3 (e.i. show ___.___.___.___ count)
+then echo "$1 $2 $3"	# snfrdaemon $1 $2 $3
 elif [ "$1" = 'select' ] && [ "$2" = 'iface' ] && [ -n "$3" ]
-then echo "$1 $2 $3"	# command exec. #exec program with parameter $1, $2, $3 (e.i. select iface ____)
+then echo "$1 $2 $3"	# snfrdaemon $1 $2 $3
 elif [ "$1" = 'stat' ] && [ -n $2 ]
-then echo "Show stat iface $2"	# command exec. #exec program with parameter $1, $2 (e.i. stat ____)
+then echo "Show stat iface $2"	# snfrdaemon $1 $2
 fi
 exit 0
