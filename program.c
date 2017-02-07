@@ -38,7 +38,9 @@ void sniffer_start(){
 	if(dae_sock < 0){moment = get_time(); fprintf(logfile,"Socket error\ %s\t\n",moment);};
 };
 
-void sniffer_stop();
+void sniffer_stop(){
+	close(dae_sock);
+};
 void show_ip_count(char *); 	// pas to the function link to ip adddress value stored in "ip_addr[]"
 void select_iface(char *);	// pas to the function link to iface value stored in "iface[]"
 void stat_iface(char *);	// pas to the function link to iface value stored in "iface[]"
