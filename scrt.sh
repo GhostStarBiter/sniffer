@@ -2,9 +2,9 @@
 #
 #
 #
-[ -e daemon_calls.txt ] && continue || touch daemon_calls.txt /home/$(whoami)/
+[ -e daelog.txt ] && continue || touch daelog.txt /home/$(whoami)/
 #
-echo { $(date) $1 $2 $3 } >> /home/$(whoami)/daemon_calls.txt
+echo { $(date) $1 $2 $3 } >> /home/$(whoami)/daelog.txt
 if [ -z "$1" ] || [ "$1" = '--help' ]
 then	echo "Commands to use:"
 	echo "\n"
