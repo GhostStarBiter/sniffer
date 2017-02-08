@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <unistd.h>
+#include <unistd.h>	//close
 #include <netinet/in.h>   //sockaddr_in (internet socket address)
 
 
@@ -15,6 +15,7 @@ int length;
 char ip_addr[12];
 char iface[4];
 char default_iface[] = "eth0";
+char *curr_time;
 
 struct sockaddr_in source_addr, dest_addr;
 
@@ -24,7 +25,7 @@ char *get_time(){
 	time( &rawtime );
 	tm_info = localtime( &rawtime );
 	curr_time = asctime( tm_info );
-	return( &curr_time );
+	return(curr_time);
 }
 
 void sniffer_start(){
@@ -34,13 +35,29 @@ void sniffer_start(){
 	moment = get_time();
 	fprintf(logfile,"Sniffer started %s\t\n ",moment);
 	/*CREATE BLANK SOCKET*/
-  	dae_sock = socket(AF_INET,SOCK_STREAM(????)  ,  );
+  dae_sock = socket(AF_INET,SOCK_STREAM(????)  ,  );
 	if(dae_sock < 0){moment = get_time(); fprintf(logfile,"Socket error\ %s\t\n",moment);};
+  int saddr_sz, data_sz;
+  struct sockaddr saddr;
+  struct in_addr in;
+  unsigned char *sock_buff = (unsigned char *)malloc(65536);
+	while(1){
+      saddr_sz = sizeof(saddr);
+      data_sz = recvfrom(dae_sock, sock_buff, 65536, 0, &saddr, &saddr_sz);
+      if(data_sz < 0){
+        printf("%s\n","Recvfrom error, failed to get packets");
+        return 1;
+      };
+    
+  }
 };
 
 void sniffer_stop(){
-	close(dae_sock);
+	if(close(dae_sock) == 0) {return 0;}
+	else
+	return 1;	
 };
+
 void show_ip_count(char *); 	// pas to the function link to ip adddress value stored in "ip_addr[]"
 void select_iface(char *);	// pas to the function link to iface value stored in "iface[]"
 void stat_iface(char *);	// pas to the function link to iface value stored in "iface[]"
