@@ -1,10 +1,15 @@
 #!/bin/sh
 #
+#	Before executing the script need to be done symbolic link to /usr/local/bin
+#	Before executing program need to be done symbolic link to /usr/local/bin
 #
-#
-[ -e daelog.txt ] && continue || touch daelog.txt /home/$(whoami)/
+[ -d /home/$(whoami)/snifer ] && continue || mkdir /home/$(whoami)/snifer
+[ -e daelog.txt ] && continue || touch daelog.txt /home/$(whoami)/snifer
 #
 echo { $(date) $1 $2 $3 } >> /home/$(whoami)/daelog.txt
+echo "\nInterfaces avaliable: \n" >> /home/$(whoami)/daelog.txt
+ls /sys/class/net >> /home/$(whoami)/daelog.txt
+
 if [ -z "$1" ] || [ "$1" = '--help' ]
 then	echo "Commands to use:"
 	echo "\n"
