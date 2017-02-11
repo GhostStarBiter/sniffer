@@ -30,14 +30,14 @@ then	echo "Commands to use:"
 	echo "\n"
 	echo "\tstat [iface]\t show all collected statistics for particular interface, if [iface] omitted - for all interfaces;\n"
 elif [ "$1" = 'start' ]
-then $(DAEMON) $1 echo "start done"
+then $(DAEMON) $1 #echo "start done"
 elif [ "$1" = 'stop' ]
-then $(DAEMON) $1 echo "stop done"
+then $(DAEMON) $1 #echo "stop done"
 elif [ "$1" = 'show' ] && [ "$3" = 'count' ]
-then $(DAEMON) $1 $2 $3 echo "$1 $2 $3"
+then $(DAEMON) $1 $2 $3 #echo "$1 $2 $3"
 elif [ "$1" = 'select' ] && [ "$2" = 'iface' ] && [ -n "$3" ]
-then $(DAEMON) $1 $2 $3 echo "$1 $2 $3"
+then $(DAEMON) $1 $2 $3 #echo "$1 $2 $3"
 elif [ "$1" = 'stat' ] && [ -n $2 ]
-then $(DAEMON) $1 $2 echo "Show stat iface $2"
+then $(DAEMON) $1 $2 #echo "Show stat iface $2"
 fi
 exit 0
