@@ -14,7 +14,6 @@
 #include <netinet/if_ether.h>
 #include <net/ethernet.h>
 
-
 FILE *tmp_log;
 FILE *all_ifaces;
 FILE *stat;
