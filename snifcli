@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# 1.Before executing C program pckt_snfr need to be done symbolic link to /usr/local/bin
+#
+#	2.Before executing the script need to be done symbolic link to /usr/local/bin
+#	sudo ln -s /full/path/to/snifcli_file /usr/local/bin/name_of_new_command
+#
+# 3. Make command line interface file executable 
+# chmod +x /full/path/to/snifcli_file
+#
+readonly DAEMON = "pckt_snfr"
+
+[ -d /home/$(whoami)/snifer ] && continue || mkdir /home/$(whoami)/snifer
+[ -e logfile.txt ] && continue || touch logfile.txt /home/$(whoami)/snifer
+[ -e statistics.txt ] && continue || touch statistics.txt /home/$(whoami)/snifer
+#
+echo { $(date) $1 $2 $3 } >> /home/$(whoami)/logfile.txt
+ls /sys/class/net >> /home/$(whoami)/interfaces.txt
+
+if [ -z "$1" ] || [ "$1" = '--help' ]
+then	echo "Commands to use:"
+	echo "\n"
+	echo "\t start\t packets are being sniffed from now on from default iface(eth0);"
+	echo "\n"
+	echo "\t stop\t packets are not sniffed;"
+	echo "\n"
+	echo "\t show [ip] count\t print number of packets received from ip address;"
+	echo "\n"
+	echo "\t select iface [iface]\t select interface for sniffing eth0, wlan0, ethN, wlanN...;"
+	echo "\n"
+	echo "\tstat [iface]\t show all collected statistics for particular interface, if [iface] omitted - for all interfaces;\n"
+elif [ "$1" = 'start' ]
+then $(DAEMON) $1 echo "start done"
+elif [ "$1" = 'stop' ]
+then $(DAEMON) $1 echo "stop done"
+elif [ "$1" = 'show' ] && [ "$3" = 'count' ]
+then $(DAEMON) $1 $2 $3 echo "$1 $2 $3"
+elif [ "$1" = 'select' ] && [ "$2" = 'iface' ] && [ -n "$3" ]
+then $(DAEMON) $1 $2 $3 echo "$1 $2 $3"
+elif [ "$1" = 'stat' ] && [ -n $2 ]
+then $(DAEMON) $1 $2 echo "Show stat iface $2"
+fi
+exit 0
