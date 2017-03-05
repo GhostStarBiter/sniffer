@@ -60,7 +60,6 @@ static struct packet_data {
     int total;
 } iface_stat_data;
 
-
 /**FUNCTIONS SECTION**/
 
 char * GetTime(){
