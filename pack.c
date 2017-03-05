@@ -6,7 +6,7 @@
 *	5. Change file permissions. Type to terminal "sudo chmod 4755 pack".
 *	6. Make symbolic link "sudo ln -s $(pwd)/pack /usr/local/bin/pack_d.
 *		P.S. here $(pwd) means absolute path to directory with file "pack"
-*		P.P.S. pack_d - program's command line name. You can choose it anyone you want and use it!
+*		P.P.S. pack_d - program's command line name. Chose any name that contains word "pack".
 *	7. Type "pack_d"(or how you called your packet sniffer) to terminal and hit enter to see program options.
 */
 
