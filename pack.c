@@ -4,8 +4,10 @@
 *	3. Type to terminal "make" command to compile the pack.c file and get executable file "pack".
 *	4. Type to terminal command "sudo chown root.root pack" to run program as root user.
 *	5. Change file permissions. Type to terminal "sudo chmod 4755 pack".
-*	6. Make symbolic link "sudo ln -s $(pwd)/pack /usr/local/bin.
+*	6. Make symbolic link "sudo ln -s $(pwd)/pack /usr/local/bin/pack_d.
 *		P.S. here $(pwd) means absolute path to directory with file "pack"
+*		P.P.S. pack_d - program's command line name. You can choose it anyone you want and use it!
+*	7. Type "pack_d"(or how you called your packet sniffer) to terminal and hit enter to see program options.
 */
 
 #define _GNU_SOURCE
