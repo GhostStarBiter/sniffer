@@ -1,13 +1,13 @@
 /*		HOWTO:
-*	1. Copy files "makefile" and "pack.c" on your computer hard disk. 
-*	2. Run terminal in directory with copied files. 
-*	3. Type to terminal "make" command to compile the pack.c file and get executable file "pack".
-*	4. Type to terminal command "sudo chown root.root pack" to run program as root user.
-*	5. Change file permissions. Type to terminal "sudo chmod 4755 pack".
-*	6. Make symbolic link "sudo ln -s $(pwd)/pack /usr/local/bin/pack_d.
-*		P.S. here $(pwd) means absolute path to directory with file "pack"
-*		P.P.S. pack_d - program's command line name. Chose any name that contains word "pack".
-*	7. Type "pack_d"(or how you called your packet sniffer) to terminal and hit enter to see program options.
+*	1. Copy files "makefile" and "pack.c" on your computer hard disk.
+*	2. Run terminal in directory with copied files.
+*	3. Type to terminal "make" command to compile the statnet.c file and get executable file "statnet".
+*	4. Type to terminal command "sudo chown root.root statnet" to run program as root user.
+*	5. Change file permissions. Type to terminal "sudo chmod 4755 statnet".
+*	6. Make symbolic link "sudo ln -s $(pwd)/statnet /usr/local/bin/statnet.
+*		P.S. here $(pwd) means absolute path to directory with file "statnet"
+*		P.P.S. statnet - program's command line name. Chose any name that contains word "pack".
+*	7. Type "statnet" to terminal and hit enter to see program's options.
 */
 
 #define _GNU_SOURCE
@@ -18,6 +18,7 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <syslog.h>
 #include <sys/socket.h>
@@ -27,27 +28,24 @@
 
 #define MAX_IFACES 64
 #define MAX_IP_SOURCES 65536
+#define WORK_DIR "/opt/statnet"
+#define STATISTICS "statistics.txt"
+#define LOGFILE "logfile.txt"
+#define TEMPFILE "tmp_stat.txt"
 
 
 // DECLARATION SECTION //
-pid_t ch_pid;
-
 FILE *_logfile;
-FILE *_all_ifaces;
 FILE *_pack_stats;
-FILE *_tmp_stat;
+static pid_t ch_pid;
 static char *_default_iface;
-char *_curr_iface;
+static char *_curr_iface;
 static char *_iface_arr[MAX_IFACES];
-char *_ip_addr;
-char *_argv = " ";
-int iface_to_stat;
-int snif_default;
-int iface_to_snif;
-int iface_nmbr;
-int sockfd;
-int rec_result = 0;
-int raw_len;
+static char *_argv;
+static int iface_to_snif;
+static int iface_nmbr;
+
+
 
 time_t daemon_start;
 
@@ -79,7 +77,8 @@ char * GetTime(){
 ////////////////////////////////////
 
 void TempStatToFile(struct packet_data iface_stat_data){
-    if((_tmp_stat = fopen("tmp_stat.txt", "w")) == NULL){
+    FILE *_tmp_stat;
+    if((_tmp_stat = fopen(TEMPFILE, "w")) == NULL){
         syslog(LOG_DAEMON | LOG_ERR, "%s%s", "Open tmp_stat.txt error: ", strerror(errno));
         exit(EXIT_FAILURE);
     };
@@ -96,7 +95,7 @@ void TempStatToFile(struct packet_data iface_stat_data){
     fprintf(_tmp_stat, "%s\n", "--------------------------------------");
     fclose(_tmp_stat);
     return;
-} 
+}
 
 struct packet_data ProcessIP(char* _ip_address, struct packet_data iface_stat_data){
     int ip_found = 0;
@@ -198,31 +197,32 @@ void Start(){
     int par_pid = getpid();
     /* daemonizing the program */
     Daemonize();
-    
     if(ch_pid > par_pid){
-	return;
+	    return;
     };
     time(&daemon_start);
     umask(0);
-    openlog ("packcatch", LOG_PID, LOG_DAEMON);
-
-    syslog(LOG_NOTICE, "%s %s \n", "packcatch daemon started", GetTime());
+    openlog ("statnet", LOG_PID, LOG_DAEMON);
+    syslog(LOG_NOTICE, "%s %s \n", "statnet daemon started", GetTime());
 
     /*Start-time to statistics file*/
-    if((_pack_stats = fopen("statistics.txt", "a")) == NULL){
-        syslog(LOG_DAEMON | LOG_ERR, "%s %s \n", "Open statistics.txt error: ", strerror(errno));
+    if((_pack_stats = fopen(STATISTICS, "a")) == NULL){
+        syslog(LOG_DAEMON | LOG_ERR, "%s %s \n", "statistics.txt error: ", strerror(errno));
         exit(EXIT_FAILURE);
     };
     fprintf(_pack_stats, "%s %s %s\n", GetTime(), "start", _curr_iface);
     fclose(_pack_stats);
     /* LOG */
-    if((_logfile = fopen("logfile.txt","a")) == NULL){
+    if((_logfile = fopen(LOGFILE,"a")) == NULL){
         syslog(LOG_DAEMON | LOG_ERR,"%s%s", "Open logfile.txt error: ", strerror(errno));
         exit(EXIT_FAILURE);
     };
     fprintf(_logfile, "%s\t%s %s\n", GetTime(),"start", _curr_iface);
     fclose(_logfile);
 
+    int sockfd;
+    int rec_result = 0;
+    int raw_len;
     long s_addr_size;
     struct sockaddr s_addr;
     int proto = htons(ETH_P_ALL);
@@ -235,7 +235,7 @@ void Start(){
 
     if((sockfd < 0) || (opt_result < 0)){
         syslog(LOG_DAEMON | LOG_ERR,"%s%s", "Socket error: ", strerror(errno));
-        if((_logfile = fopen("logfile.txt","a")) == NULL){
+        if((_logfile = fopen(LOGFILE,"a")) == NULL){
             syslog(LOG_DAEMON | LOG_ERR,"%s%s", "Open logfile.txt error: ", strerror(errno));
             exit(EXIT_FAILURE);
         };
@@ -249,7 +249,7 @@ void Start(){
         rec_result = recvfrom(sockfd, data_buff, 65536, 0, &s_addr, (socklen_t*) &s_addr_size);
         if(rec_result < 0){
             syslog(LOG_DAEMON | LOG_ERR,"%s%s", "Error in recvfrom function: ", strerror(errno));
-            if((_logfile = fopen("logfile.txt","a")) == NULL){
+            if((_logfile = fopen(LOGFILE,"a")) == NULL){
                 syslog(LOG_DAEMON | LOG_ERR,"%s%s", "Open logfile.txt error: ", strerror(errno));
                 exit(EXIT_FAILURE);
             };
@@ -271,12 +271,12 @@ void Stop(){
 
     // merge statistics files
     FILE* f1;
-    if((f1 = fopen("statistics.txt", "a")) == NULL){
+    if((f1 = fopen(STATISTICS, "a")) == NULL){
         printf("%s%s\n", "Can't open file statistics.txt: ", strerror(errno));
         exit(EXIT_FAILURE);
     };
     FILE* f2;
-    if((f2 = fopen("tmp_stat.txt", "a+")) == NULL){
+    if((f2 = fopen(TEMPFILE, "a+")) == NULL){
         printf("%s%s\n", "Can't open file tmp_stat.txt: ", strerror(errno));
         exit(EXIT_FAILURE);
     };
@@ -287,58 +287,53 @@ void Stop(){
     while ((read_f2 = getline(&_line_f2, &len_f2, f2)) != -1) {
         fprintf(f1, "%s", _line_f2);
     };
+    free(_line_f2);
     fclose(f1);
-    FILE* f3 = freopen("tmp_stat.txt", "w", f2); //clear tmp_stat.txt
+    FILE* f3 = freopen(TEMPFILE, "w", f2); //clear tmp_stat.txt
     fclose(f3);
     if(strcmp(_argv, "stop") == 0){
-        if((_logfile = fopen("logfile.txt","a")) == NULL){
+        if((_logfile = fopen(LOGFILE,"a")) == NULL){
             syslog(LOG_DAEMON | LOG_ERR,"%s%s", "Open logfile.txt error: ", strerror(errno));
             exit(EXIT_FAILURE);
         };
         fprintf(_logfile, "%s\t%s\n", GetTime(), "stop");
         fclose(_logfile);
         FILE* f0;
-        if((f0 = fopen("statistics.txt", "a")) == NULL){
+        if((f0 = fopen(STATISTICS, "a")) == NULL){
             printf("%s%s\n", "Can't open file statistics.txt: ", strerror(errno));
             exit(EXIT_FAILURE);
         };
         fprintf(f0, "%s %s\n", GetTime(), "stop\n");
         fclose(f0);
     };
-    int cur_pid = (int) getpid();
-    char command[15];
-    strcpy(command, "kill ");
-    ssize_t read_pipe = 0;
-    char* _line_pipe = NULL;
-    size_t len_p = 0;
     FILE* _pipe;
-    if((_pipe = popen("pgrep pack", "r")) == NULL){
+    if((_pipe = popen("pgrep statnet", "r")) == NULL){
         syslog(LOG_DAEMON | LOG_ERR, "%s%s", "popen() error: ", strerror(errno));
         exit(EXIT_FAILURE);
     };
+    int cur_pid = (int) getpid();
+    ssize_t read_pipe = 0;
+    char* _line_pipe = NULL;
+    size_t len_p = 0;
     while ((read_pipe = getline(&_line_pipe, &len_p, _pipe)) != -1) {
         if(_line_pipe == NULL){
             printf("%s\n", "Can't get PID.");
             exit(EXIT_FAILURE);
         }
-        for (int i = 0; i < read_pipe; i++) {
-            if (_line_pipe[i] == '\n') {
-                _line_pipe[i] = '\0';
-                break;
-            };
+        if (_line_pipe[read_pipe] == '\n') {
+            _line_pipe[read_pipe] = '\0';
         };
         int N = atoi(_line_pipe);
-        if (N == cur_pid) {
-            break;
-        };
-        strcat(command, _line_pipe);
-        if ((system(command)) < 0) {
-            syslog(LOG_ERR, "%s %s \n", "Can't kill packcatch process. ", strerror(errno));
-            exit(EXIT_FAILURE);
+        if (N != cur_pid) {
+            if (kill(N, SIGTERM) < 0) {
+                syslog(LOG_ERR, "%s %s \n", "Can't kill statnet process. ", strerror(errno));
+                exit(EXIT_FAILURE);
+            };
         };
     };
+    free(_line_pipe);
     pclose(_pipe);
-    syslog(LOG_NOTICE, "%s \n", "Daemon packcatch stopped.");
+    syslog(LOG_NOTICE, "%s \n", "Daemon statnet stopped.");
     return;
 }
 
@@ -349,7 +344,7 @@ void Stop(){
 void ShowIpCount(char *_ip_addr){
 
     FILE* stat_file;
-    if((stat_file = fopen("statistics.txt", "r")) == NULL){
+    if((stat_file = fopen(STATISTICS, "r")) == NULL){
         syslog(LOG_ERR, "%s %s ", "Failed to open statistics.txt for show IP statistic. ", strerror(errno));
         exit(EXIT_FAILURE);
     };
@@ -366,6 +361,7 @@ void ShowIpCount(char *_ip_addr){
             };
         };
     };
+    free(line);
     if(ip_found == 0){
         printf("%s\n", "Requested IP adress not found. ");
     };
@@ -378,7 +374,8 @@ void ShowIpCount(char *_ip_addr){
 //////////////
 void StatIface(char *_stat_iface){
     FILE* _show_stat;
-    if((_show_stat = fopen("statistics.txt", "r")) == NULL){
+    int iface_to_stat;
+    if((_show_stat = fopen(STATISTICS, "r")) == NULL){
         syslog(LOG_ERR, "%s %s ", "Failed to open statistics.txt. ", strerror(errno));
         exit(EXIT_FAILURE);
     };
@@ -390,6 +387,7 @@ void StatIface(char *_stat_iface){
         while ((line_sz = getline(&readline, &len, _show_stat)) != -1) {
             printf("%s", readline);
         };
+        free(readline);
         return;
     };
     int iface_found = 0;
@@ -419,6 +417,8 @@ void StatIface(char *_stat_iface){
             printf("%s\n", " ");
         };
     };
+    free(file_line);
+    free(next_line);
     fclose(_show_stat);
     return;
 }
@@ -439,21 +439,20 @@ int main(int argc, char *argv[]){
         return 1;
     };
     //PROGRAM GET PARAMETERS! LET'S GO!//
+    close(2); // close stderror file descriptor
 
-    FILE* _pipe_dir;
-    close(2);
-    if((_pipe_dir = popen("sudo mkdir /opt/sniffer", "w")) == NULL){
-        syslog(LOG_DAEMON | LOG_ERR, "%s%s", "popen() error: ", strerror(errno));
-        exit(EXIT_FAILURE);
-    };
-	pclose(_pipe_dir);
-    const char *_work_dir = "/opt/sniffer";
-    if(chdir(_work_dir) < 0){
+    int snif_default;
+    struct stat _stat_buf;
+    if(stat(WORK_DIR, &_stat_buf) == -1) {
+        if (mkdir(WORK_DIR, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != 0) {
+            syslog(LOG_DAEMON | LOG_ERR, "%s%s", "mkdir error: ", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+    }
+    if(chdir(WORK_DIR) < 0){
         printf("%s%s", "Change working directory error: ", strerror(errno));
         exit(EXIT_FAILURE);
     };
-
-    /*              variant 1             */
     /*GET LIST OF COMPUTER NETWORK DEVICES*/
     FILE* _iface_pipe;
     if((_iface_pipe = popen("ls /sys/class/net", "r")) == NULL){
@@ -473,34 +472,8 @@ int main(int argc, char *argv[]){
         iface_nmbr++;
         readline = NULL;
     };
+    free(readline);
     pclose(_iface_pipe);
-
-
-    /*              variant 2             */
-    /*GET LIST OF COMPUTER NETWORK DEVICES*/
-        /*
-    if((_all_ifaces = fopen("interfaces.txt", "r")) == NULL){
-        syslog(LOG_ERR, "%s %s", "Open interfaces.txt error:", strerror(errno));
-        exit(EXIT_FAILURE);
-    };
-
-    ssize_t read_sz = 0;
-    size_t len = 0;
-    char *readline = NULL;
-    for(int k = 0;(read_sz = getline(&readline, &len, _all_ifaces)) != -1; ++k){
-        if(readline == NULL){
-            syslog(LOG_ERR, "%s", "File interfaces.txt empty.");
-            exit(EXIT_FAILURE);
-        };
-        readline[read_sz -1] = '\0';
-        _iface_arr[k] = readline;
-        iface_nmbr++;
-        readline = NULL;
-    };
-    fclose(_all_ifaces);
-    */
-
-
 
     /*SET DEFAULT INTERFACE (eth0)*/
     /*on my laptop - enp1s0*/
@@ -519,8 +492,8 @@ int main(int argc, char *argv[]){
 
                             /*********************************/
                             /**************START**************/
-    if((strcmp(argv[1],"start")) == 0){
-        printf("%s\n", "Start packet sniffer with default ethernet interface.");
+    if((argc == 2) && (strcmp(argv[1],"start")) == 0){
+        printf("%s\n", "Start on default ethernet interface.");
         Start();
         printf("%s\n", "Done.");
         exit(EXIT_SUCCESS);
@@ -528,40 +501,39 @@ int main(int argc, char *argv[]){
     else
                             /********************************/
                             /**************STOP**************/
-    if((strcmp(argv[1],"stop")) == 0){
+    if((argc == 2) && (strcmp(argv[1],"stop")) == 0){
         _argv = "stop";
-        printf("%s", "Stop packet sniffer...");
+        printf("%s", "Stop collect statistics...");
         Stop();
-        printf("%s\n", " Done.\nSee:\n\t/opt/sniffer/statistics.txt file with results;\n\t/opt/sniffer/logfile.txt with log info;\n");
+        printf("%s\n", " Done.\nSee:\n\t/opt/statnet/statistics.txt file with results;\n\t/opt/statnet/logfile.txt with log info;\n");
         exit(EXIT_SUCCESS);
     }
     else
                         /**************SHOW [IP] COUNT**************/
     if((strcmp(argv[1],"show") == 0) && (strcmp(argv[3],"count") == 0)){
+        char *_ip_addr;
         _ip_addr = argv[2];
         /* LOG */
-        if((_logfile = fopen("logfile.txt","a")) == NULL){
+        if((_logfile = fopen(LOGFILE,"a")) == NULL){
             syslog(LOG_DAEMON | LOG_ERR,"%s%s", "Open logfile.txt error: ", strerror(errno));
             exit(EXIT_FAILURE);
         };
         fprintf(_logfile, "%s\t%s %s %s\n", GetTime(), argv[1], argv[2], argv[3]);
         fclose(_logfile);
 
-        printf("%s\n\n", "If daemon is running type 'pack_d stop' to stop the daemon and get full statistic.");
+        printf("%s\n", "If daemon is running type 'statnet stop' to stop the daemon and get full statistic.");
         ShowIpCount(_ip_addr);                              //*SHOW IP COUNT*//
-        printf("\n%s\n", "If daemon is running type 'pack_d stop' to stop the daemon and get full statistic.");
+        printf("%s\n", "If daemon is running type 'statnet stop' to stop the daemon and get full statistic.");
         printf("%s\n", "Show information about IP done");
         exit(EXIT_SUCCESS);
     }
     else
                         /*************SELECT INTERFACE*************/ //CHECK
-    if((strcmp(argv[1],"select") == 0) && (strcmp(argv[2],"iface") == 0)){
+    if((argc == 3)
+       && (strcmp(argv[1],"select") == 0)
+       && (strcmp(argv[2],"iface") == 0)){
 
         _argv = "change_iface";
-        if( argv[3] == NULL ){
-            printf("%s\n", "Exit FAILURE. You must specify interface name. Type ''ls /sys/class/net'' to see the list");
-            exit(EXIT_FAILURE);
-        };
         int iface_found = 0;
         for(int i = 0; i < iface_nmbr; i++){
             if((strcmp( argv[3], _iface_arr[i] )) == 0){
@@ -579,7 +551,7 @@ int main(int argc, char *argv[]){
             iface_to_snif = snif_default;
         };
         /* LOG */
-        if((_logfile = fopen("logfile.txt","a")) == NULL){
+        if((_logfile = fopen(LOGFILE,"a")) == NULL){
             syslog(LOG_DAEMON | LOG_ERR,"%s%s", "Open logfile.txt error: ", strerror(errno));
             exit(EXIT_FAILURE);
         };
@@ -595,20 +567,20 @@ int main(int argc, char *argv[]){
     else
                                 /*********************************/
                                 /***********STAT IFACE************/
-    if(strcmp(argv[1],"stat") == 0){
+    if((argc < 3) && (strcmp(argv[1],"stat") == 0)){
         char *_iface = argv[2];
         if(_iface == NULL){
             _iface = "all";
         };
-        printf("\n%s\n\n", "If daemon is running type 'pack_d stop' to stop the daemon and get full statistic.");
-        if((_logfile = fopen("logfile.txt","a")) == NULL){
+        printf("\n%s\n\n", "If daemon is running type 'statnet stop' to stop the daemon and get full statistic.");
+        if((_logfile = fopen(LOGFILE,"a")) == NULL){
             syslog(LOG_DAEMON | LOG_ERR,"%s%s", "Open logfile.txt error: ", strerror(errno));
             exit(EXIT_FAILURE);
         };
         fprintf(_logfile, "%s\t%s %s\n", GetTime(), argv[1], _iface);
         fclose(_logfile);
         StatIface(_iface);
-        printf("\n%s\n\n", "If daemon is running type 'pack_d stop' to stop the daemon and get full statistic.");
+        printf("\n%s\n\n", "If daemon is running type 'statnet stop' to stop the daemon and get full statistic.");
         exit(EXIT_SUCCESS);
     };
     exit(0);
